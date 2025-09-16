@@ -162,13 +162,13 @@ async def get_movie_network(movie_id: int):
         
         # Get similar movies
         similar_url = f"{TMDB_BASE_URL}/movie/{movie_id}/similar"
-        similar_response = requests.get(similar_url, headers=headers)
+        similar_response = requests.get(similar_url, params=params, headers=headers)
         similar_response.raise_for_status()
         similar_data = similar_response.json()
         
         # Get recommendations
         recommendations_url = f"{TMDB_BASE_URL}/movie/{movie_id}/recommendations"
-        rec_response = requests.get(recommendations_url, headers=headers)
+        rec_response = requests.get(recommendations_url, params=params, headers=headers)
         rec_response.raise_for_status()
         rec_data = rec_response.json()
         
