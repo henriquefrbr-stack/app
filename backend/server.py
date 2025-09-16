@@ -206,9 +206,10 @@ async def get_movie_details(movie_id: int):
     """Get detailed information about a specific movie"""
     try:
         url = f"{TMDB_BASE_URL}/movie/{movie_id}"
+        params = {"api_key": TMDB_API_KEY}
         headers = get_tmdb_headers()
         
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
         
         movie_data = response.json()
