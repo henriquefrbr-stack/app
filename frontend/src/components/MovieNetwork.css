@@ -42,6 +42,11 @@
 
 .network-node {
   transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.network-node.central {
+  cursor: default;
 }
 
 .network-link {
