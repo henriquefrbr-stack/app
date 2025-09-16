@@ -208,6 +208,7 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
         }
       })
       .on("click", function(event, d) {
+        event.stopPropagation();
         if (d.type !== "central") {
           setSelectedNode(d);
           onNodeClick(d.id);
