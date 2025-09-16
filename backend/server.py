@@ -63,7 +63,6 @@ class MovieNetwork(BaseModel):
 # TMDB API helper functions
 def get_tmdb_headers():
     return {
-        "Authorization": f"Bearer {TMDB_API_KEY}",
         "accept": "application/json"
     }
 
