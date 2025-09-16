@@ -109,6 +109,7 @@ async def search_movies(query: str):
     try:
         url = f"{TMDB_BASE_URL}/search/movie"
         params = {
+            "api_key": TMDB_API_KEY,
             "query": query,
             "include_adult": False,
             "language": "en-US",
