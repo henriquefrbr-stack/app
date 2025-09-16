@@ -151,9 +151,10 @@ async def get_movie_network(movie_id: int):
     try:
         # Get the main movie details
         movie_url = f"{TMDB_BASE_URL}/movie/{movie_id}"
+        params = {"api_key": TMDB_API_KEY}
         headers = get_tmdb_headers()
         
-        movie_response = requests.get(movie_url, headers=headers)
+        movie_response = requests.get(movie_url, params=params, headers=headers)
         movie_response.raise_for_status()
         movie_data = movie_response.json()
         
