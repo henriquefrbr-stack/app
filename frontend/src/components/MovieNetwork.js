@@ -44,7 +44,7 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
       .attr("stop-color", "#c44569")
       .attr("stop-opacity", 1);
 
-    // Related node gradient
+    // Related node gradient (varies by similarity score)
     const relatedGradient = defs.append("radialGradient")
       .attr("id", "related-gradient")
       .attr("cx", "50%")
@@ -59,6 +59,23 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
     relatedGradient.append("stop")
       .attr("offset", "100%")
       .attr("stop-color", "#0984e3")
+      .attr("stop-opacity", 1);
+
+    // High similarity gradient
+    const highSimilarityGradient = defs.append("radialGradient")
+      .attr("id", "high-similarity-gradient")
+      .attr("cx", "50%")
+      .attr("cy", "50%")
+      .attr("r", "50%");
+    
+    highSimilarityGradient.append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", "#00b894")
+      .attr("stop-opacity", 1);
+    
+    highSimilarityGradient.append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", "#00a085")
       .attr("stop-opacity", 1);
 
     // Prepare data
@@ -79,18 +96,19 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
 
     const nodes = [centralNode, ...relatedNodes];
     
-    // Create links from central to all related nodes
+    // Create links from central to all related nodes with varying strength based on similarity
     const links = relatedNodes.map(node => ({
       source: centralNode,
-      target: node
+      target: node,
+      strength: node.similarity_score || 0.5
     }));
 
     // Create force simulation
     const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(200))
-      .force("charge", d3.forceManyBody().strength(-500))
+      .force("link", d3.forceLink(links).id(d => d.id).distance(d => 180 + (1 - (d.strength || 0.5)) * 100))
+      .force("charge", d3.forceManyBody().strength(-600))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(70));
+      .force("collision", d3.forceCollide().radius(75));
 
     // Add zoom behavior
     const zoom = d3.zoom()
@@ -104,14 +122,15 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
     // Create main group
     const g = svg.append("g");
 
-    // Create links
+    // Create links with varying opacity based on similarity
     const link = g.append("g")
       .selectAll("line")
       .data(links)
       .join("line")
       .attr("class", "network-link")
-      .attr("stroke", "rgba(255, 255, 255, 0.3)")
-      .attr("stroke-width", 2);
+      .attr("stroke", "rgba(255, 255, 255, 0.4)")
+      .attr("stroke-width", d => 1 + (d.strength || 0.5) * 3)
+      .attr("opacity", d => 0.3 + (d.strength || 0.5) * 0.4);
 
     // Create node groups
     const nodeGroup = g.append("g")
@@ -125,11 +144,24 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
         .on("drag", dragged)
         .on("end", dragended));
 
-    // Add node circles (backgrounds)
+    // Add node circles (backgrounds) with similarity-based styling
     nodeGroup.append("circle")
-      .attr("r", d => d.type === "central" ? 80 : 60)
-      .attr("fill", d => d.type === "central" ? "url(#central-gradient)" : "url(#related-gradient)")
-      .attr("stroke", "rgba(255, 255, 255, 0.8)")
+      .attr("r", d => {
+        if (d.type === "central") return 80;
+        const baseRadius = 60;
+        const similarityBonus = (d.similarity_score || 0) * 15;
+        return baseRadius + similarityBonus;
+      })
+      .attr("fill", d => {
+        if (d.type === "central") return "url(#central-gradient)";
+        const similarity = d.similarity_score || 0;
+        return similarity > 0.7 ? "url(#high-similarity-gradient)" : "url(#related-gradient)";
+      })
+      .attr("stroke", d => {
+        if (d.type === "central") return "rgba(255, 255, 255, 0.8)";
+        const similarity = d.similarity_score || 0;
+        return similarity > 0.7 ? "rgba(0, 184, 148, 0.8)" : "rgba(255, 255, 255, 0.6)";
+      })
       .attr("stroke-width", d => d.type === "central" ? 4 : 2)
       .style("filter", "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3))");
 
@@ -137,14 +169,39 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
     nodeGroup.append("clipPath")
       .attr("id", (d, i) => `clip-${i}`)
       .append("circle")
-      .attr("r", d => d.type === "central" ? 70 : 50);
+      .attr("r", d => {
+        if (d.type === "central") return 70;
+        const baseRadius = 50;
+        const similarityBonus = (d.similarity_score || 0) * 12;
+        return baseRadius + similarityBonus;
+      });
 
     nodeGroup.append("image")
       .attr("href", d => d.poster_url || "/api/placeholder/140/210")
-      .attr("x", d => d.type === "central" ? -70 : -50)
-      .attr("y", d => d.type === "central" ? -70 : -50)
-      .attr("width", d => d.type === "central" ? 140 : 100)
-      .attr("height", d => d.type === "central" ? 140 : 100)
+      .attr("x", d => {
+        if (d.type === "central") return -70;
+        const baseSize = -50;
+        const similarityBonus = (d.similarity_score || 0) * -12;
+        return baseSize + similarityBonus;
+      })
+      .attr("y", d => {
+        if (d.type === "central") return -70;
+        const baseSize = -50;
+        const similarityBonus = (d.similarity_score || 0) * -12;
+        return baseSize + similarityBonus;
+      })
+      .attr("width", d => {
+        if (d.type === "central") return 140;
+        const baseSize = 100;
+        const similarityBonus = (d.similarity_score || 0) * 24;
+        return baseSize + similarityBonus;
+      })
+      .attr("height", d => {
+        if (d.type === "central") return 140;
+        const baseSize = 100;
+        const similarityBonus = (d.similarity_score || 0) * 24;
+        return baseSize + similarityBonus;
+      })
       .attr("clip-path", (d, i) => `url(#clip-${i})`)
       .style("opacity", 0.9);
 
@@ -152,7 +209,12 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
     nodeGroup.append("text")
       .attr("class", "node-label")
       .attr("text-anchor", "middle")
-      .attr("y", d => d.type === "central" ? 95 : 75)
+      .attr("y", d => {
+        if (d.type === "central") return 95;
+        const baseY = 75;
+        const similarityBonus = (d.similarity_score || 0) * 12;
+        return baseY + similarityBonus;
+      })
       .style("fill", "#ffffff")
       .style("font-size", d => d.type === "central" ? "14px" : "12px")
       .style("font-weight", "600")
@@ -168,7 +230,12 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
     nodeGroup.filter(d => d.vote_average)
       .append("g")
       .attr("class", "rating-badge")
-      .attr("transform", d => d.type === "central" ? "translate(55, -55)" : "translate(40, -40)")
+      .attr("transform", d => {
+        if (d.type === "central") return "translate(55, -55)";
+        const similarity = d.similarity_score || 0;
+        const offset = 40 + similarity * 10;
+        return `translate(${offset}, ${-offset})`;
+      })
       .call(g => {
         g.append("circle")
           .attr("r", 18)
@@ -185,25 +252,52 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
           .text(d => d.vote_average.toFixed(1));
       });
 
+    // Add similarity score indicators for high-scoring movies
+    nodeGroup.filter(d => d.type === "related" && (d.similarity_score || 0) > 0.7)
+      .append("g")
+      .attr("class", "similarity-badge")
+      .attr("transform", d => {
+        const similarity = d.similarity_score || 0;
+        const offset = -(40 + similarity * 10);
+        return `translate(${offset}, ${offset})`;
+      })
+      .call(g => {
+        g.append("circle")
+          .attr("r", 15)
+          .attr("fill", "rgba(0, 184, 148, 0.9)")
+          .attr("stroke", "#ffffff")
+          .attr("stroke-width", 2);
+        
+        g.append("text")
+          .attr("text-anchor", "middle")
+          .attr("dy", "0.35em")
+          .style("fill", "#ffffff")
+          .style("font-size", "10px")
+          .style("font-weight", "700")
+          .text("★");
+      });
+
     // Mouse events
     nodeGroup
       .on("mouseover", function(event, d) {
         if (d.type !== "central") {
           setHoveredNode(d);
+          const currentRadius = d3.select(this).select("circle").attr("r");
           d3.select(this).select("circle")
             .transition()
             .duration(200)
-            .attr("r", 70)
+            .attr("r", parseFloat(currentRadius) + 10)
             .style("filter", "drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4))");
         }
       })
       .on("mouseout", function(event, d) {
         if (d.type !== "central") {
           setHoveredNode(null);
+          const baseRadius = d.type === "central" ? 80 : 60 + ((d.similarity_score || 0) * 15);
           d3.select(this).select("circle")
             .transition()
             .duration(200)
-            .attr("r", 60)
+            .attr("r", baseRadius)
             .style("filter", "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3))");
         }
       })
@@ -263,7 +357,7 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
       <div className="network-header">
         <h2 className="network-title">Movie Network</h2>
         <p className="network-subtitle">
-          Click on any movie to explore its connections
+          Intelligent connections based on genres, directors, and cast • Click any movie to explore
         </p>
       </div>
       
@@ -278,7 +372,22 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
             </p>
             <div className="tooltip-rating">
               <span>⭐ {hoveredNode.vote_average ? hoveredNode.vote_average.toFixed(1) : 'N/A'}</span>
+              {hoveredNode.similarity_score && (
+                <span className="similarity-score">
+                  • Match: {Math.round(hoveredNode.similarity_score * 100)}%
+                </span>
+              )}
             </div>
+            {hoveredNode.director && (
+              <p className="tooltip-director">
+                <strong>Director:</strong> {hoveredNode.director}
+              </p>
+            )}
+            {hoveredNode.genres && hoveredNode.genres.length > 0 && (
+              <p className="tooltip-genres">
+                <strong>Genres:</strong> {hoveredNode.genres.map(g => g.name).join(', ')}
+              </p>
+            )}
             <p className="tooltip-overview">
               {hoveredNode.overview 
                 ? hoveredNode.overview.length > 150 
@@ -293,7 +402,7 @@ const MovieNetwork = ({ networkData, onNodeClick }) => {
 
       <div className="network-controls">
         <div className="control-hint">
-          <span>💡 Drag nodes • Zoom with mouse wheel • Click to explore</span>
+          <span>💡 Drag nodes • Zoom with mouse wheel • Click to explore • ★ = High similarity</span>
         </div>
       </div>
     </div>

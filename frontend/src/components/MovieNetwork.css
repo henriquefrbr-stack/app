@@ -19,6 +19,7 @@
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 300;
+  line-height: 1.4;
 }
 
 .network-container {
@@ -59,7 +60,7 @@
   user-select: none;
 }
 
-.rating-badge {
+.rating-badge, .similarity-badge {
   pointer-events: none;
 }
 
@@ -67,7 +68,7 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  width: 280px;
+  width: 300px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   padding: 1.5rem;
@@ -97,6 +98,24 @@
   margin-bottom: 1rem;
   font-size: 0.9rem;
   color: #888;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.similarity-score {
+  color: #00b894;
+  font-weight: 600;
+}
+
+.tooltip-director, .tooltip-genres {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.tooltip-director strong, .tooltip-genres strong {
+  color: #333;
 }
 
 .tooltip-overview {

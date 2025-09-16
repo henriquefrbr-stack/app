@@ -37,8 +37,8 @@ function App() {
     <div className="App">
       <div className="app-container">
         <header className="app-header">
-          <h1 className="app-title">FilmOrbit</h1>
-          <p className="app-subtitle">Discover movies through interactive exploration</p>
+          <h1 className="app-title">CinemaMap</h1>
+          <p className="app-subtitle">Discover movies through intelligent connections</p>
         </header>
 
         <MovieSearch onMovieSelect={handleMovieSearch} />
@@ -52,7 +52,7 @@ function App() {
         {loading && (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>Loading movie network...</p>
+            <p>Analyzing movie connections...</p>
           </div>
         )}
 
@@ -66,20 +66,20 @@ function App() {
         {!networkData && !loading && (
           <div className="welcome-message">
             <div className="welcome-content">
-              <h2>Welcome to FilmOrbit</h2>
-              <p>Search for a movie to discover its cinematic universe through an interactive network of related films.</p>
+              <h2>Welcome to CinemaMap</h2>
+              <p>Search for any movie to discover its cinematic universe through intelligent connections based on genres, directors, and cast.</p>
               <div className="features">
                 <div className="feature">
-                  <span className="feature-icon">🔍</span>
-                  <span>Search any movie</span>
+                  <span className="feature-icon">🎬</span>
+                  <span>Smart recommendations</span>
                 </div>
                 <div className="feature">
                   <span className="feature-icon">🕸️</span>
-                  <span>Explore connections</span>
+                  <span>Visual connections</span>
                 </div>
                 <div className="feature">
-                  <span className="feature-icon">🎬</span>
-                  <span>Discover new films</span>
+                  <span className="feature-icon">🎯</span>
+                  <span>Relevant discoveries</span>
                 </div>
               </div>
             </div>
