@@ -1,52 +1,91 @@
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import axios from "axios";
+import MovieSearch from "./components/MovieSearch";
+import MovieNetwork from "./components/MovieNetwork";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
+function App() {
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [networkData, setNetworkData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleMovieSearch = async (movieId) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const response = await axios.get(`${API}/movies/${movieId}/network`);
+      setNetworkData(response.data);
+      setSelectedMovie(response.data.central_movie);
+    } catch (err) {
+      console.error("Error fetching movie network:", err);
+      setError("Failed to load movie network. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const handleNodeClick = (movieId) => {
+    handleMovieSearch(movieId);
+  };
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <div className="app-container">
+        <header className="app-header">
+          <h1 className="app-title">FilmOrbit</h1>
+          <p className="app-subtitle">Discover movies through interactive exploration</p>
+        </header>
+
+        <MovieSearch onMovieSelect={handleMovieSearch} />
+
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading movie network...</p>
+          </div>
+        )}
+
+        {networkData && !loading && (
+          <MovieNetwork 
+            networkData={networkData}
+            onNodeClick={handleNodeClick}
+          />
+        )}
+
+        {!networkData && !loading && (
+          <div className="welcome-message">
+            <div className="welcome-content">
+              <h2>Welcome to FilmOrbit</h2>
+              <p>Search for a movie to discover its cinematic universe through an interactive network of related films.</p>
+              <div className="features">
+                <div className="feature">
+                  <span className="feature-icon">🔍</span>
+                  <span>Search any movie</span>
+                </div>
+                <div className="feature">
+                  <span className="feature-icon">🕸️</span>
+                  <span>Explore connections</span>
+                </div>
+                <div className="feature">
+                  <span className="feature-icon">🎬</span>
+                  <span>Discover new films</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
