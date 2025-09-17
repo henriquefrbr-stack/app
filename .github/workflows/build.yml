@@ -26,3 +26,8 @@ jobs:
       - name: Gerar o build
         run: npm run build
         working-directory: frontend
+
+      - name: Instalar dependências
+        run: npm install --legacy-peer-deps
+        working-directory: frontend
+
