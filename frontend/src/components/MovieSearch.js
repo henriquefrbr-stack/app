@@ -33,19 +33,25 @@ const MovieSearch = ({ onMovieSelect }) => {
       setLoading(false);
     }
   };
+const debounceRef = useRef(null);
 
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    setQuery(value);
-    
-    // Debounce search
-    if (value.trim()) {
-      const timeoutId = setTimeout(() => handleSearch(value), 300);
-      return () => clearTimeout(timeoutId);
-    } else {
-      setShowResults(false);
-    }
-  };
+const handleInputChange = (e) => {
+  const value = e.target.value;
+  setQuery(value);
+  
+  // Clear previous timeout
+  if (debounceRef.current) {
+    clearTimeout(debounceRef.current);
+  }
+  
+  // Debounce search
+  if (value.trim()) {
+    debounceRef.current = setTimeout(() => handleSearch(value), 300);
+  } else {
+    setShowResults(false);
+    setSearchResults([]);
+  }
+};
 
   const handleMovieClick = (movie) => {
     setQuery(movie.title);
